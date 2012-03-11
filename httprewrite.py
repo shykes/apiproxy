@@ -1,9 +1,23 @@
 import re
+import os
+
 from http_parser.http import HttpStream, NoMoreData
 from http_parser.reader import SocketReader
 import socket
 
+
+# Default to the sample api key provided by the Mailgun docs
+MAILGUN_APIKEY = os.environ.get('MAILGUN_APIKEY', 'key-3ax6xnjp29jd6fds4gc373sgvjxteol0')
+
+
+def basic_auth_headers(user, pw):
+    """ Return the http headers for a Basic http authentication using `user` and `pw`. """
+    import requests
+    return requests.auth.HTTPBasicAuth('api', MAILGUN_APIKEY)(requests.models.Request()).headers
+
+
 def rewrite_headers(parser, values=None):
+    print values
     headers = parser.headers()
     if isinstance(values, dict):
         headers.update(values)
@@ -23,8 +37,8 @@ def rewrite_request(req):
     try: 
         while True:
             parser = HttpStream(req)
-                
-            new_headers = rewrite_headers(parser, {'Host': 'gunicorn.org'})
+
+            new_headers = rewrite_headers(parser, dict({'Host': 'api.mailgun.net'}, **basic_auth_headers('api', MAILGUN_APIKEY)))
             if new_headers is None:
                 break
             req.send(new_headers)
@@ -52,4 +66,4 @@ def rewrite_response(resp):
         pass
 
 def proxy(data):
-    return {'remote': ('gunicorn.org', 80)}
+    return {'remote': ('api.mailgun.net', 443), 'ssl': True}

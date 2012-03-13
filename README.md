@@ -10,7 +10,7 @@ This is a proof-of-concept of an authenticated gateway to the Mailgun API. It al
 ## Usage
 
     $ pip install -r requirements.txt
-    $ tproxy httprewrite.py
+    $ tproxy mailgun.py
     $ curl -k -s http://localhost:5000/v2/domains
     [...] json output [...]
 
